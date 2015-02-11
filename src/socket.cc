@@ -22,7 +22,7 @@ Socket::Socket( FileDescriptor && fd, const int domain, const int type )
   len = sizeof( actual_value );
 #ifdef linux
   SystemCall( "getsockopt",
-	      getsockopt( fd_num(), SOL_SOCKET, SO_DOMAIN, &actual_value, &len ) );
+              getsockopt( fd_num(), SOL_SOCKET, SO_DOMAIN, &actual_value, &len ) );
 #else
   Address addr = local_address();
   actual_value = addr.domain();
@@ -35,7 +35,7 @@ Socket::Socket( FileDescriptor && fd, const int domain, const int type )
   /* verify type */
   len = sizeof( actual_value );
   SystemCall( "getsockopt",
-	      getsockopt( fd_num(), SOL_SOCKET, SO_TYPE, &actual_value, &len ) );
+              getsockopt( fd_num(), SOL_SOCKET, SO_TYPE, &actual_value, &len ) );
   if ( (len != sizeof( actual_value )) or (actual_value != type) ) {
     throw runtime_error( "socket type mismatch" );
   }
@@ -43,14 +43,14 @@ Socket::Socket( FileDescriptor && fd, const int domain, const int type )
 
 /* get the local or peer address the socket is connected to */
 Address Socket::get_address( const std::string & name_of_function,
-			     const std::function<int(int, sockaddr *, socklen_t *)> & function ) const
+                             const std::function<int(int, sockaddr *, socklen_t *)> & function ) const
 {
   Address::raw address;
   socklen_t size = sizeof( address );
 
   SystemCall( name_of_function, function( fd_num(),
-					  &address.as_sockaddr,
-					  &size ) );
+                                          &address.as_sockaddr,
+                                          &size ) );
 
   return Address( address, size );
 }
@@ -69,16 +69,16 @@ Address Socket::peer_address( void ) const
 void Socket::bind( const Address & address )
 {
   SystemCall( "bind", ::bind( fd_num(),
-			      &address.to_sockaddr(),
-			      address.size() ) );
+                              &address.to_sockaddr(),
+                              address.size() ) );
 }
 
 /* connect socket to a specified peer address */
 void Socket::connect( const Address & address )
 {
   SystemCall( "connect", ::connect( fd_num(),
-				    &address.to_sockaddr(),
-				    address.size() ) );
+                                    &address.to_sockaddr(),
+                                    address.size() ) );
 }
 
 /* receive datagram and where it came from */
@@ -110,7 +110,7 @@ UDPSocket::received_datagram UDPSocket::recv( void )
 
   /* call recvmsg */
   ssize_t recv_len = SystemCall( "recvmsg",
-				 recvmsg( fd_num(), &header, 0 ) );
+                                 recvmsg( fd_num(), &header, 0 ) );
 
   register_read();
 
@@ -129,13 +129,13 @@ UDPSocket::received_datagram UDPSocket::recv( void )
   while ( ts_hdr ) {
 #if defined(SO_TIMESTAMPNS)
     if ( ts_hdr->cmsg_level == SOL_SOCKET
-	 and ts_hdr->cmsg_type == SCM_TIMESTAMPNS ) {
+         and ts_hdr->cmsg_type == SCM_TIMESTAMPNS ) {
       const timespec * const kernel_time = reinterpret_cast<timespec *>( CMSG_DATA( ts_hdr ) );
       timestamp = timestamp_ms( *kernel_time );
     }
 #elif defined(SO_TIMESTAMP)
     if ( ts_hdr->cmsg_level == SOL_SOCKET
-	 and ts_hdr->cmsg_type == SCM_TIMESTAMP ) {
+         and ts_hdr->cmsg_type == SCM_TIMESTAMP ) {
       const timeval * const kernel_time = reinterpret_cast<timeval *>( CMSG_DATA( ts_hdr ) );
       timestamp = timestamp_ms( timestamp_conv ( *kernel_time ) );
     }
@@ -145,9 +145,9 @@ UDPSocket::received_datagram UDPSocket::recv( void )
 #endif
 
   received_datagram ret = { Address( datagram_source_address,
-				     header.msg_namelen ),
-			    timestamp,
-			    string( msg_payload, recv_len ) };
+                                     header.msg_namelen ),
+                            timestamp,
+                            string( msg_payload, recv_len ) };
 
   return ret;
 }
@@ -157,11 +157,11 @@ void UDPSocket::sendto( const Address & destination, const string & payload )
 {
   const ssize_t bytes_sent =
     SystemCall( "sendto", ::sendto( fd_num(),
-				    payload.data(),
-				    payload.size(),
-				    0,
-				    &destination.to_sockaddr(),
-				    destination.size() ) );
+                                    payload.data(),
+                                    payload.size(),
+                                    0,
+                                    &destination.to_sockaddr(),
+                                    destination.size() ) );
 
   register_write();
 
@@ -175,9 +175,9 @@ void UDPSocket::send( const string & payload )
 {
   const ssize_t bytes_sent =
     SystemCall( "send", ::send( fd_num(),
-				payload.data(),
-				payload.size(),
-				0 ) );
+                                payload.data(),
+                                payload.size(),
+                                0 ) );
 
   register_write();
 
@@ -204,7 +204,7 @@ template <typename option_type>
 void Socket::setsockopt( const int level, const int option, const option_type & option_value )
 {
   SystemCall( "setsockopt", ::setsockopt( fd_num(), level, option,
-					  &option_value, sizeof( option_value ) ) );
+                                          &option_value, sizeof( option_value ) ) );
 }
 
 /* allow local address to be reused sooner, at the cost of some robustness */

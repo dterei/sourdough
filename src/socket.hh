@@ -12,7 +12,7 @@ class Socket : public FileDescriptor
 private:
   /* get the local or peer address the socket is connected to */
   Address get_address( const std::string & name_of_function,
-		       const std::function<int(int, sockaddr *, socklen_t *)> & function ) const;
+                       const std::function<int(int, sockaddr *, socklen_t *)> & function ) const;
 
 protected:
   /* default constructor */

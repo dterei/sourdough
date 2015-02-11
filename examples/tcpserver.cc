@@ -44,18 +44,18 @@ int main( int argc, char *argv[] )
        result of accept() as the "client" parameter to the handler. */
 
     thread client_handler( [] ( TCPSocket client ) {
-	cerr << "New connection from " << client.peer_address().to_string() << endl;
+      cerr << "New connection from " << client.peer_address().to_string() << endl;
 
-	/* Print every line that the client sends */
-	while ( true ) {
-	  const string chunk = client.read();
-	  if ( client.eof() ) { break; }
-	  cerr << "Got " << chunk.size() << " bytes from "
-	       << client.peer_address().to_string() << ": " << chunk;
-	  client.write( "Received " + to_string( chunk.size() ) + " bytes from you.\n" );
-	}
+        /* Print every line that the client sends */
+        while ( true ) {
+          const string chunk = client.read();
+          if ( client.eof() ) { break; }
+          cerr << "Got " << chunk.size() << " bytes from "
+               << client.peer_address().to_string() << ": " << chunk;
+          client.write( "Received " + to_string( chunk.size() ) + " bytes from you.\n" );
+        }
 
-	cerr << client.peer_address().to_string() << " closed the connection." << endl; 
+        cerr << client.peer_address().to_string() << " closed the connection." << endl; 
       }, listening_socket.accept() );
 
     /* Let the client handler continue to run without having

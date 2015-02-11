@@ -14,7 +14,7 @@ private:
 
   /* attempt to write a portion of a string */
   std::string::const_iterator write( const std::string::const_iterator & begin,
-				     const std::string::const_iterator & end );
+                                     const std::string::const_iterator & end );
 
   /* maximum size of a read */
 #ifdef __APPLE__

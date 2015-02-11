@@ -40,7 +40,7 @@ FileDescriptor::~FileDescriptor()
 
 /* attempt to write a portion of a string */
 string::const_iterator FileDescriptor::write( const string::const_iterator & begin,
-					      const string::const_iterator & end )
+                                              const string::const_iterator & end )
 {
   if ( begin >= end ) {
     throw runtime_error( "nothing to write" );
