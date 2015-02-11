@@ -1,3 +1,5 @@
+cscope.*
+tags
 *.a
 *.o
 config.h.in~
