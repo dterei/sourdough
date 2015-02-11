@@ -51,7 +51,7 @@ string put_header_field( const uint64_t n )
 {
   const uint64_t network_order = htobe64( n );
   return string( reinterpret_cast<const char *>( &network_order ),
-		 sizeof( network_order ) );
+                 sizeof( network_order ) );
 }
 
 /* Make wire representation of header */
@@ -73,7 +73,7 @@ string ContestMessage::to_string( void ) const
 
 /* Transform into an ack of the ContestMessage */
 void ContestMessage::transform_into_ack( const uint64_t sequence_number,
-					 const uint64_t recv_timestamp )
+                                         const uint64_t recv_timestamp )
 {
   /* ack the old sequence number */
   header.ack_sequence_number = header.sequence_number;
@@ -92,7 +92,7 @@ void ContestMessage::transform_into_ack( const uint64_t sequence_number,
 
 /* New message */
 ContestMessage::ContestMessage( const uint64_t s_sequence_number,
-				const std::string & s_payload )
+                                const std::string & s_payload )
   : header( s_sequence_number ),
     payload( s_payload )
 {}

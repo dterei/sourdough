@@ -29,7 +29,7 @@ struct ContestMessage
 
   /* New message */
   ContestMessage( const uint64_t s_sequence_number,
-		  const std::string & s_payload );
+                  const std::string & s_payload );
 
   /* Parse incoming datagram from wire */
   ContestMessage( const std::string & str );
@@ -42,7 +42,7 @@ struct ContestMessage
 
   /* Transform into an ack of the ContestMessage */
   void transform_into_ack( const uint64_t sequence_number,
-			   const uint64_t recv_timestamp );
+                           const uint64_t recv_timestamp );
 
   /* Is this message an ack? */
   bool is_ack( void ) const;
