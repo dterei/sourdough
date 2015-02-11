@@ -7,9 +7,11 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([src/address.hh])
 AC_CONFIG_HEADERS([config.h])
 
+# Set default CXXFLAGS
+DEF_CXXFLAGS="-std=c++11 -g -O2"
+AC_SUBST([AM_CXXFLAGS], [DEF_CXXFLAGS])
 # Add picky CXXFLAGS
-CPPFLAGS="-std=c++11 -pthread"
-PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Weffc++ -Werror"
+PICKY_CXXFLAGS="$DEF_CXXFLAGS -pedantic -Wall -Wextra -Weffc++ -Werror"
 AC_SUBST([PICKY_CXXFLAGS])
 
 # Checks for programs.
