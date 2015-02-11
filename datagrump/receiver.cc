@@ -36,7 +36,7 @@ int main( int argc, char *argv[] )
   /* Loop and acknowledge every incoming datagram back to its source */
   while ( true ) {
     const UDPSocket::received_datagram recd = socket.recv();
-    ContestMessage message = recd.payload;
+    ContestMessage message { recd.payload };
 
     /* assemble the acknowledgment */
     message.transform_into_ack( sequence_number++, recd.timestamp );

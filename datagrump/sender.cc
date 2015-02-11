@@ -136,7 +136,7 @@ int DatagrumpSender::loop( void )
      (by using the sender's got_ack method) */
   poller.add_action( Action( socket_, Direction::In, [&] () {
         const UDPSocket::received_datagram recd = socket_.recv();
-        const ContestMessage ack  = recd.payload;
+        const ContestMessage ack { recd.payload };
         got_ack( recd.timestamp, ack );
         return ResultType::Continue;
       } ) );
