@@ -1,5 +1,6 @@
 *.a
 *.o
+config.h.in~
 Makefile
 Makefile.in
 /aclocal.m4
