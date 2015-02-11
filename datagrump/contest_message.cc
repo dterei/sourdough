@@ -5,6 +5,12 @@
 
 using namespace std;
 
+#ifdef __APPLE__
+#include <machine/endian.h>
+#define be64toh ntohll
+#define htobe64 htonll
+#endif
+
 /* helper to get the nth uint64_t field (in network byte order) */
 uint64_t get_header_field( const size_t n, const string & str )
 {

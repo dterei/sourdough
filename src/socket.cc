@@ -20,8 +20,14 @@ Socket::Socket( FileDescriptor && fd, const int domain, const int type )
 
   /* verify domain */
   len = sizeof( actual_value );
+#ifdef linux
   SystemCall( "getsockopt",
 	      getsockopt( fd_num(), SOL_SOCKET, SO_DOMAIN, &actual_value, &len ) );
+#else
+  Address addr = local_address();
+  actual_value = addr.domain();
+  len = sizeof( actual_value );
+#endif
   if ( (len != sizeof( actual_value )) or (actual_value != domain) ) {
     throw runtime_error( "socket domain mismatch" );
   }
@@ -118,15 +124,25 @@ UDPSocket::received_datagram UDPSocket::recv( void )
   uint64_t timestamp = -1;
 
   /* find the timestamp header (if there is one) */
+#if defined(SO_TIMESTAMPNS) || defined(SO_TIMESTAMP)
   cmsghdr *ts_hdr = CMSG_FIRSTHDR( &header );
   while ( ts_hdr ) {
+#if defined(SO_TIMESTAMPNS)
     if ( ts_hdr->cmsg_level == SOL_SOCKET
-	 and ts_hdr->cmsg_type == SO_TIMESTAMPNS ) {
+	 and ts_hdr->cmsg_type == SCM_TIMESTAMPNS ) {
       const timespec * const kernel_time = reinterpret_cast<timespec *>( CMSG_DATA( ts_hdr ) );
       timestamp = timestamp_ms( *kernel_time );
     }
+#elif defined(SO_TIMESTAMP)
+    if ( ts_hdr->cmsg_level == SOL_SOCKET
+	 and ts_hdr->cmsg_type == SCM_TIMESTAMP ) {
+      const timeval * const kernel_time = reinterpret_cast<timeval *>( CMSG_DATA( ts_hdr ) );
+      timestamp = timestamp_ms( timestamp_conv ( *kernel_time ) );
+    }
+#endif
     ts_hdr = CMSG_NXTHDR( &header, ts_hdr );
   }
+#endif
 
   received_datagram ret = { Address( datagram_source_address,
 				     header.msg_namelen ),
@@ -200,5 +216,9 @@ void Socket::set_reuseaddr( void )
 /* turn on timestamps on receipt */
 void UDPSocket::set_timestamps( void )
 {
+#if defined(SO_TIMESTAMPNS)
   setsockopt( SOL_SOCKET, SO_TIMESTAMPNS, int( true ) );
+#elif defined(SO_TIMESTAMP)
+  setsockopt( SOL_SOCKET, SO_TIMESTAMP, int( true ) );
+#endif
 }

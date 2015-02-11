@@ -37,6 +37,7 @@ public:
   Address( const std::string & ip, const uint16_t port );
 
   /* accessors */
+  sa_family_t domain( void  ) const { return addr_.as_sockaddr.sa_family; }
   std::pair<std::string, uint16_t> ip_port( void ) const;
   std::string ip( void ) const { return ip_port().first; }
   uint16_t port( void ) const { return ip_port().second; }

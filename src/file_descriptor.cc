@@ -56,12 +56,13 @@ string::const_iterator FileDescriptor::write( const string::const_iterator & beg
   return begin + bytes_written;
 }
 
+
 /* read method */
 string FileDescriptor::read( const size_t limit )
 {
   char buffer[ BUFFER_SIZE ];
 
-  ssize_t bytes_read = SystemCall( "read", ::read( fd_, buffer, min( BUFFER_SIZE, limit ) ) );
+  ssize_t bytes_read = SystemCall( "read", ::read( fd_, buffer, min( sizeof(buffer), limit )  ) );
   if ( bytes_read == 0 ) {
     set_eof();
   }

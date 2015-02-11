@@ -17,7 +17,12 @@ private:
 				     const std::string::const_iterator & end );
 
   /* maximum size of a read */
+#ifdef __APPLE__
+  /* default stack size on OSX is only 512KB, so need to lower */
+  const static size_t BUFFER_SIZE = 1024 * 256;
+#else
   const static size_t BUFFER_SIZE = 1024 * 1024;
+#endif
 
 protected:
   void register_read( void ) { read_count_++; }
