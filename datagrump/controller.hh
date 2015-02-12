@@ -2,6 +2,7 @@
 #define CONTROLLER_HH
 
 #include <cstdint>
+#include <queue>
 
 /* Congestion controller interface */
 
@@ -11,6 +12,24 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
+  unsigned int win_;
+
+  unsigned int queue_;
+
+  /* previous N RTT samples */
+  std::queue<uint64_t> avg_s_;
+  std::queue<uint64_t> avg_r_;
+  std::queue<uint64_t> avg_t_;
+
+  /* previous >>N RTT samples */
+  std::queue<uint64_t> avg_s_l_;
+  std::queue<uint64_t> avg_r_l_;
+  std::queue<uint64_t> avg_t_l_;
+
+  /* RTT averages */
+  int64_t rtt_avg_short_;
+  int64_t rtt_avg_long_;
+  int64_t rtt_sq_long_;
 
 public:
   /* Public interface for the congestion controller */
