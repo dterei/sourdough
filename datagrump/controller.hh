@@ -12,7 +12,7 @@ private:
   bool debug_; /* Enables debugging output */
 
   /* Add member variables here */
-  unsigned int win_;
+  int win_;
 
   unsigned int queue_;
 
@@ -27,8 +27,8 @@ private:
   std::queue<uint64_t> avg_t_l_;
 
   /* RTT averages */
-  int64_t rtt_avg_short_;
-  int64_t rtt_avg_long_;
+  int64_t rtt_sum_short_;
+  int64_t rtt_sum_long_;
   int64_t rtt_sq_long_;
 
 public:

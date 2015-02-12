@@ -7,16 +7,19 @@
 
 using namespace std;
 
-const int64_t DEFAULT_WINDOW = 5;
-const int64_t SAMPLES_SHORT = 10;
-const int64_t SAMPLES_LONG = 10 * SAMPLES_SHORT;
+const int SCALE = 10;
+const int UP = 2;
+const int DOWN = SCALE;
+const int64_t DEFAULT_WINDOW = 30 * SCALE;
+const int64_t SAMPLES_SHORT = 4;
+const int64_t SAMPLES_LONG = 20;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_{ debug }, win_{ DEFAULT_WINDOW }, queue_{0},
     avg_s_{}, avg_r_{}, avg_t_{},
     avg_s_l_{}, avg_r_l_{}, avg_t_l_{},
-    rtt_avg_short_{0}, rtt_avg_long_{0}, rtt_sq_long_{0}
+    rtt_sum_short_{0}, rtt_sum_long_{0}, rtt_sq_long_{0}
 {}
 
 /* Get current window size, in datagrams */
@@ -27,7 +30,7 @@ unsigned int Controller::window_size( void )
          << " window size is " << win_ << endl;
   }
 
-  return win_;
+  return win_ / SCALE;
 }
 
 /* A datagram was sent */
@@ -74,62 +77,65 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
   if ( avg_s_.size() > SAMPLES_SHORT ) {
     int64_t last_short = avg_t_.front();
-    cerr << "Pop: " << last_short << ", ";
     avg_s_.pop();
     avg_r_.pop();
     avg_t_.pop();
-    // simple moving average
-    rtt_avg_short_ += (new_sample - last_short) / SAMPLES_SHORT;
+    rtt_sum_short_ += new_sample - last_short;
   } else {
-    rtt_avg_short_ = (rtt_avg_short_ * (avg_s_.size() - 1) + new_sample) / avg_s_.size();
+    rtt_sum_short_ += new_sample;
   }
 
   avg_s_l_.push(recv_timestamp_acked - send_timestamp_acked);
   avg_r_l_.push(timestamp_ack_received - recv_timestamp_acked);
   avg_t_l_.push(new_sample);
+
   bool cont = true;
 
   if ( avg_s_l_.size() > SAMPLES_LONG ) {
     int64_t last_long = avg_t_l_.front();
-    cerr << "Last: " << last_long << ", " << endl;
     avg_s_l_.pop();
     avg_r_l_.pop();
     avg_t_l_.pop();
-    // simple moving average
-    rtt_avg_long_ += (new_sample - last_long) / SAMPLES_LONG;
-    rtt_sq_long_ += (new_sample * new_sample - last_long * last_long);
+    rtt_sum_long_ += new_sample - last_long;
+    rtt_sq_long_  += new_sample * new_sample - last_long * last_long;
   } else {
-    rtt_avg_long_ = (rtt_avg_long_ * (avg_s_l_.size() - 1) + new_sample) / avg_s_l_.size();
-    rtt_sq_long_ += new_sample * new_sample;
+    rtt_sum_long_ += new_sample;
+    rtt_sq_long_  += new_sample * new_sample;
     cont = false;
   }
 
-  int64_t rtt_dev = abs(rtt_sq_long_ - rtt_avg_long_ * rtt_avg_long_ * SAMPLES_LONG);
-  int64_t rtt_dev_root = sqrt(rtt_dev / SAMPLES_LONG);
+  int64_t rtt_dev = (rtt_sq_long_ / SAMPLES_LONG)
+    - (rtt_sum_long_ * rtt_sum_long_) / (SAMPLES_LONG * SAMPLES_LONG);
+  int64_t rtt_dev_root = sqrt(abs(rtt_dev));
 
-  cerr << "Short: " << rtt_avg_short_
-       << ", Long: " << rtt_avg_long_
+  int64_t rtt_avg_short = rtt_sum_short_ / SAMPLES_SHORT;
+  int64_t rtt_avg_long  = rtt_sum_long_  / SAMPLES_LONG;
+
+  cerr << "Short: " << rtt_avg_short
+       << ", Long: " << rtt_avg_long
        << ", Sq: " << rtt_sq_long_
        << ", Dev: " << rtt_dev
        << ", Dev': " << rtt_dev_root
-       << ", Win: " << win_;
+       << ", Win: " << win_ / SCALE;
 
   if ( !cont ) {
     cerr << endl;
     return;
   }
 
-  if ( rtt_avg_short_ > rtt_avg_long_ + rtt_dev ) {
+  if ( rtt_avg_short > rtt_avg_long + rtt_dev_root ) {
     /* reduce window */
-    win_--;
+    win_ -= DOWN;
+    if (win_ <= SCALE) { win_ = SCALE; }
     cerr << ", --" << endl;
-  } else if ( rtt_avg_short_ < rtt_avg_long_ - rtt_dev ) {
+  } else if ( rtt_avg_short < rtt_avg_long - rtt_dev_root ) {
     /* increase window */
-    win_++;
+    win_ += UP;
     cerr << ", ++" << endl;
   } else {
     /* leave window unchanged */
-    cerr << endl;
+    win_ += UP;
+    cerr << ", +*" << endl;
   }
 }
 
